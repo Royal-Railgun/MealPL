@@ -1,0 +1,208 @@
+﻿@{
+    ViewBag.Title = "Create";
+    string[] mealType = System.Enum.GetNames(typeof(WW.MPLN.Core.MealTypes));
+    string [] units = System.Enum.GetNames(typeof(WW.MPLN.Core.MealUnits)).Select(p=>p.Replace("_"," ").ToLower()).ToArray();
+}
+
+<h2>Create Plan</h2>
+<div class="row">
+
+    <div class="row col-md-12 form-horizontal">
+        <div class="form-group">
+            <label class="col-sm-1 control-label">Name</label>
+            <div class="col-sm-10">
+                <input type="text" id="name" name="name" value="" placeholder="plan name" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="tags" class="col-sm-1 control-label">Tags(split with ',')</label>
+            <div class="col-sm-10">
+                <input type="text" id="tags" name="tags" style="max-width:600px;" placeholder="Dash,Mediterranean" class="form-control " />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="description" class="col-sm-1 control-label">Description</label>
+            <div class="col-sm-10">
+                <input type="text" id="description" name="description" placeholder="description for plan" style="max-width:600px;" class="form-control " />
+            </div>
+        </div>
+    </div>
+    @{
+        foreach (var type in mealType)
+        {
+            <div class="row col-md-12">
+                <h3>@type</h3><button type="button" attr-type="@type" class="btn btn_add_meal">Add More</button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th width="20%">Name</th>
+                            <th width="10%">NBD</th>
+                            <th width="10%">Count</th>
+                            <th width="10%">Unit</th>
+                            <th width="25%">Tag</th>
+                            <th width="25%">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody class="config_body">
+                        <tr>
+                            <td>
+                                <input type="text" class="txtName form-control" value="" />
+                                <input type="hidden" class="txtType" value="@type" />
+                            </td>
+                            <td>
+                                <input type="text" class="txtNBD form-control" value="" />
+                            </td>
+                            <td>
+                                <input type="text" class="txtCount form-control" value="" />
+                            </td>
+                            <td>
+                                <select class="selectUnit form-control">
+                                    @foreach (var i in units)
+                                    {
+                                        <option value="@i">@i</option>
+                                    }
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" class="txtTag form-control" value="" />
+                            </td>
+                            <td>
+                                <input type="text" class="txtDescription form-control" value="" />
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+
+    <div class="row col-md-12">
+        <div class="col-lg-offset-1">
+            <input type="submit" id="btnSubmit" class="btn btn-primary" value="Submit" />
+            @Html.ActionLink("Cancel", "Index", new { }, new { Class = "btn btn-default" })
+        </div>
+    </div>
+</div>
+<table style="display:none">
+    <tbody id="meal_item_template">
+        <tr>
+            <td>
+                <input type="text" class="txtName form-control" value="" />
+                <input type="hidden" class="txtType" value="#meal_type#" />
+            </td>
+            <td>
+                <input type="text" class="txtNBD form-control" value="" />
+            </td>
+            <td>
+                <input type="text" class="txtCount form-control" value="" />
+            </td>
+            <td>
+                <select class="selectUnit form-control">
+                    @foreach (var i in units)
+                    {
+                        <option value="@i">@i</option>
+                    }
+                </select>
+            </td>
+            <td>
+                <input type="text" class="txtTag form-control" value="" />
+            </td>
+            <td>
+                <input type="text" class="txtDescription form-control" value="" />
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<script type="text/javascript">
+    var insertUrl = '@Url.Action("Create")';
+    var indexUrl = '@Url.Action("Index")';
+    var infoUrl = '@Url.Action("Info")';
+
+    $(".btn_add_meal").click(function () {
+        var tempHtml = $("#meal_item_template").html();
+        var mealType = $(this).attr('attr-type');
+        tempHtml = tempHtml.replace(/#meal_type#/, mealType)
+        $(this).parent().find('.config_body').append(tempHtml);
+    })
+
+
+    function readConfig(item) {
+        var mealItem = {};
+        mealItem.Name = $(item).find('.txtName').eq(0).val().trim();
+        mealItem.NBDID = $(item).find('.txtNBD').eq(0).val().trim();
+        mealItem.Count = $(item).find('.txtCount').eq(0).val().trim();
+        mealItem.Unit = $(item).find('.selectUnit').eq(0).val().trim();
+        mealItem.Type = $(item).find('.txtType').eq(0).val().trim();
+        mealItem.Description = $(item).find('.txtDescription').eq(0).val().trim();
+        var tags = $(item).find('.txtTag').eq(0).val().trim();
+        mealItem.tags = tags.split(',')
+        if (!mealItem.Name) {
+            return null;
+        }
+        if (!mealItem.Unit) {
+            return null;
+        }
+        return mealItem;
+    }
+
+    $("#btnSubmit").click(function () {
+        var postData = {};
+        postData.name = $.trim($("#name").val());
+        postData.description = $.trim($("#description").val());
+        var tagString = $.trim($("#tags").val());
+        postData.tags = tagString.split(',')
+        var mealItems = [];
+        $(".config_body>tr").each(function (index, item) {
+            var config = readConfig(item);
+            if (config) {
+                mealItems.push(config);
+            }
+        });
+        postData.mealItems = mealItems;
+        if (postData.name.length == 0) {
+            alert("Name can not be empty");
+            return false;
+        }
+        if (postData.mealItems.length == 0) {
+            alert("Mealitem can not be empty");
+            return false;
+        }
+        for (var i = 0; i < postData.mealItems.length; i++) {
+            var countString = postData.mealItems[i].Count;
+            if (!isInteger(countString)) {
+                alert("Count must be number: " + countString);
+                return false;
+            }
+        }
+
+        $.ajax({
+            url: insertUrl,
+            async: true,
+            type: "POST",
+            data: JSON.parse(JSON.stringify(postData)),
+            dataType: "json",
+        })
+        .done(function (actionResult, textStatus, jqXHR) {
+            if (actionResult.success) {
+                window.location.href = infoUrl + '?id=' + actionResult.data;
+            }
+            else {
+                if (actionResult.Message != 'undefined') {
+                    alert(actionResult.Message);
+                }
+            }
+        })
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            alert(errorThrown);
+        })
+        .always(function (dataOrjqXHR, textStatus, jqXHRorError) {
+            $(btnSubmit).attr("disabled", false);
+        });
+    });
+
+    function isInteger(val) {
+        var pattern = /^[\d.]+$/;
+        return pattern.test(val);
+    }
+</script>

@@ -1,0 +1,145 @@
+﻿@{
+    ViewBag.Title = "Meal Plan Details";
+    string[] mealTypes = System.Enum.GetNames(typeof(WW.MPLN.Core.MealTypes));
+}
+<h2>Meal Plan Details</h2>
+<div class="row">
+    <div class="row col-md-12 form-horizontal">
+        <div class="form-group">
+            <label class="col-sm-1 control-label">Code</label>
+            <div class="col-sm-10">
+                <input type="hidden" readonly id="planid" name="planid" value="@Model.ID" class="form-control" />
+                <input type="text" readonly id="name" name="name" value="@Model.Name" class="form-control" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="tags" class="col-sm-1 control-label">Tags</label>
+            <div class="col-sm-10">
+                <input type="text" id="tags" name="tags" value="@string.Join(',', Model.Tags)" readonly style="max-width:600px;" class="form-control " />
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="description" class="col-sm-1 control-label">Description</label>
+            <div class="col-sm-10">
+                <input type="text" id="description" name="description" value="@Model.Description" readonly style="max-width:600px;" class="form-control " />
+            </div>
+        </div>
+    </div>
+    @foreach (var mealType in mealTypes)
+    {
+        <div class="row col-md-12">
+            <h3>@mealType</h3><button type="button" attr-type="@mealType" class="btn btn_add_meal">Add More</button>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th width="150px;">Name</th>
+                        <th width="80px">NBD</th>
+                        <th width="80px">Count</th>
+                        <th width="80px;">Unit</th>
+                        <th width="160px;">Tag</th>
+                        <th>Description</th>
+                        <th width="150px"></th>
+                    </tr>
+                </thead>
+                <tbody class="config_body">
+                    @foreach (var item in Model.MealItems)
+                    {
+                        if (item.Type != mealType)
+                        {
+                            continue;
+                        }
+                    <tr>
+                        <td>
+                            @item.Name
+                        </td>
+                        <td>
+                            @item.NBDID
+                        </td>
+                        <td>
+                            @item.Count
+                        </td>
+                        <td>
+                            @item.Unit
+                        </td>
+                        <td>
+                            @(item.Tags == null?"": string.Join(',', item.Tags))
+                        </td>
+                        <td>
+                            @item.Description
+                        </td>
+                        <td>
+                            <button type="button" class="btn btnEdit btn-info" attr-id="@item.ID">Edit</button> |
+                            <button type="button" class="btn btnDelete btn-warning" attr-id="@item.ID">Delete</button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    <div class="modal fade" id="editModal" role="dialog">
+    </div>
+</div>
+<script type="text/javascript">
+
+    function addConfig(addurl,mealType) {
+        var postData = {};
+        postData.planID = '@Model.ID';
+        postData.mealType = mealType;
+        $.ajax({
+            url: addurl,
+            type: "POST",
+            data: postData
+        }).done(function (response, textStatus, jqXHR) {
+            $("#editModal").empty().html(response).modal("show");
+        }).fail(function (jqXHR, textStatus, error) {
+            alert("Call Edit Url Failed");
+        })
+    }
+
+    function editConfig(editurl, id) {
+        var postData = {};
+        postData.itemID = id;
+        $.ajax({
+            url: editurl,
+            type: "POST",
+            data: postData
+        }).done(function (response, textStatus, jqXHR) {
+            $("#editModal").empty().html(response).modal("show");
+        }).fail(function (jqXHR, textStatus, error) {
+            alert("Call Edit Url Failed");
+        })
+    }
+
+    $(".btn_add_meal").click(function () {
+        var mealType = $(this).attr('attr-type');
+        var editUrl = '@Url.Action("AddMealItem")';
+        addConfig(editUrl, mealType);
+    })
+
+    $("table .btnEdit").click(function () {
+        var editUrl = '@Url.Action("EditMealItem")';
+        var id = $(this).attr('attr-id');
+        editConfig(editUrl, id);
+    });
+
+    $("table .btnDelete").click(function () {
+        if (!confirm("Are you sure to delete this item, it can not revert?")) {
+            return false;
+        }
+        var editUrl = '@Url.Action("DeleteMealItem")';
+        var id = $(this).attr('attr-id');
+        var postData = {};
+        postData.id = id;
+        $.post(editUrl,
+                 postData,
+                 function (response, textStatus, jqXHR) {
+                     if (response.success) {
+                         location.reload();
+                     }
+                     else {
+                         alert(response.msg);
+                     }
+                 });
+    });
+</script>

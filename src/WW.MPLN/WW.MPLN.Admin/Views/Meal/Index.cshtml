@@ -1,0 +1,67 @@
+﻿@{
+    ViewData["Title"] = "Meal Plans";
+}
+
+<h2>Meal Plans</h2>
+<div class="row">
+    <div class="row col-lg-12">
+        <form action="@Url.Action("Index")" method="get" class="form-inline">
+            <div class="search_form row" style="text-align:center;">
+                <input type="text" name="Key" id="searchKey"  style="width:600px;" class="form-control" placeholder="search by plan name or tag" />
+                <input type="submit" value="Search" class="form-control btn btn-default" />
+            </div>
+        </form>
+    </div>
+    <div class="row" style="margin-top:10px;margin-left:15px;">
+        @Html.ActionLink("Create New", "Create", new { }, new { Class = "btn btn-primary" })
+    </div>
+    <div class="row col-lg-12">
+        <div id="gridContainter">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="col-md-1"> Code</th>
+                        <th class="col-md-4">
+                            Tags
+                        </th>
+                        <th class="col-md-4">
+                            Description
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr attr-code="@item.ID">
+                            <td>
+                                @item.Name
+                            </td>
+                            <td>
+                                @string.Join(',', item.Tags)
+                            </td>
+                            <td>
+                                @item.Description
+                            </td>
+                            <td>
+                                @Html.ActionLink("Edit", "Info", new { id = item.ID }, new { Class = "btn btnEdit btn-info" })
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div style="margin-top:30px;text-align:right">
+        @{
+            if (Model.Page > 0)
+            {
+                <a href="/Meal/Index?page=@(Model.Page - 1)&pagesize=@Model.PageSize&key=@Model.Key">Previous</a>
+            }
+            if (Model.ItemCount >= Model.PageSize)
+            {
+                <a href="/Meal/Index?page=@(Model.Page+1)&pagesize=@Model.PageSize&key=@Model.Key">Next</a>
+            }
+        }
+    </div>
+</div>

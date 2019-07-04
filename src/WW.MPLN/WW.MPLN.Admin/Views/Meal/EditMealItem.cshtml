@@ -1,0 +1,113 @@
+﻿@{
+    Layout = null;
+    var upsetTitle = Model.ID > 0 ? "Update" : "Add";
+    string[] units = System.Enum.GetNames(typeof(WW.MPLN.Core.MealUnits)).Select(p => p.Replace("_", " ").ToLower()).ToArray();
+}
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">@upsetTitle Meal Item</h4>
+        </div>
+        <div class="modal-body" style="overflow:visible">
+
+            <div class="form-group col-lg-12">
+                <label>MealPlan:</label>
+                <input type="hidden" id="hdID" value="@Model.ID" />
+                <input type="text" name="planID" id="planID" readonly style="max-width:500px;" class="form-control" value="@Model.PlanID" />
+            </div>
+            <div class="form-group col-lg-12">
+                <label>Type:</label>
+                <input type="text" name="txtMealType" id="txtMealType" readonly style="max-width:500px;" class="form-control" value="@Model.Type" />
+            </div>
+            <div class="form-group col-lg-12">
+                <label>Name:</label>
+                <input type="text" name="txtName" id="txtName" style="max-width:500px;" class="form-control" value="@Model.Name" />
+            </div>
+            <div class="form-group col-lg-12">
+                <label>NBDID:</label>
+                <input type="text" name="txtNBD" id="txtNBD" style="max-width:500px;" class="form-control" value="@Model.NBDID" />
+            </div>
+            <div class="form-group col-lg-12">
+                <label>Count:</label>
+                <input type="text" name="txtCount" id="txtCount" style="max-width:500px;" class="form-control" value="@Model.Count" />
+            </div>
+            <div class="form-group col-lg-12">
+                <label>Unit:</label>
+                <select class="selectUnit form-control" id="txtUnit">
+                    @foreach (var unit in units)
+                    {
+                        if (Model.Unit == unit)
+                        {
+                            <option value="@unit" selected>@unit</option>
+                        }
+                        else
+                        {
+                            <option value="@unit">@unit</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group col-lg-12">
+                <label>Tag:</label>
+                <input type="text" name="txtTags" id="txtTags" style="max-width:500px;" class="form-control" value="@(Model.Tags ==null?"":string.Join(',',Model.Tags))" />
+            </div>
+            <div class="form-group col-lg-12">
+                <label>Description:</label>
+                <input type="text" name="txtDescription" id="txtDescription" style="max-width:500px;" class="form-control" value="@Model.Description" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnOk" class="btn btn-primary">Submit</button>
+            <button type="button" class="btn btn-default" id="btnCancel" data-dismiss="modal">Cancle</button>
+        </div>
+    </div>
+</div>
+<script>
+
+    $("#btnOk").click(function () {
+        var editUrl = '@Url.Action("UpsertMealItem")';
+        var postData = {};
+        postData.id = $("#hdID").val().trim();
+        postData.PlanID = $("#planID").val().trim();
+        postData.Type = $("#txtMealType").val().trim();
+        postData.Name = $("#txtName").val().trim();
+        postData.NBDID = $("#txtNBD").val().trim();
+        postData.Count = $("#txtCount").val().trim();
+        postData.Unit = $("#txtUnit").val().trim();
+        postData.Description = $("#txtDescription").val().trim();
+        var tags = $("#txtTags").val().trim();
+        postData.tags = tags.split(',')
+        if (!postData.Name) {
+            alert("name can not be null");
+            return false;
+        }
+        if (!postData.Type) {
+            alert("Meal type can not be null");
+            return false;
+        }
+        if (!postData.Unit) {
+            alert("Unit can not be null");
+            return false;
+        }
+        if (!postData.PlanID) {
+            alert("planid can not be null");
+            return false;
+        }
+        $.post(editUrl,
+                postData,
+                function (response, textStatus, jqXHR) {
+                    if (response.success) {
+                        location.reload();
+                    }
+                    else {
+                        alert(response.msg);
+                    }
+                });
+    });
+
+    $("#btnCancel").click(function () {
+        $("#editModal").modal("hide");
+    });
+</script>
