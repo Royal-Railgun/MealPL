@@ -15,4 +15,8 @@
     <ProjectReference Include="..\WW.MPLN.Storage\WW.MPLN.Storage.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Ingredient\" />
+  </ItemGroup>
+
 </Project>
